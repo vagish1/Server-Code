@@ -15,7 +15,7 @@ const userSchema = new mongoose.Schema({
         required: true,
         trim: true,
         minlength: 3,
-        maxlength: 30,
+     
         unique: [true,"Email id already in use"],
         validate: {
             validator: validator.isEmail,

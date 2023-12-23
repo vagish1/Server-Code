@@ -1,6 +1,9 @@
+require("dotenv").config()
 const mongoose = require('mongoose');
 const validator = require('validator');
-
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+ const {PasswordHasherException,FailureException,JwtTokenGenException} =  require('../../error/exception');
 const userSchema = new mongoose.Schema({
  
     name: {
@@ -39,6 +42,32 @@ const userSchema = new mongoose.Schema({
     isDeleted:{
         type:Boolean,
         default:false,
+    },
+    tokens:[{
+        token:{
+            type:String,
+            required:true
+        }
+    }]
+});
+
+userSchema.methods.generateAuthToken = async function (next){
+    try{
+        const token = await jwt.sign({_id: this._id},process.env.SECRET_KEY,{expiresIn: "14 days"})
+        this.tokens.push({token:token});
+        return token;
+    }catch(e){
+       throw new JwtTokenGenException(e.message, {"status":"error","error":"Json Web token generation error ", causedBy: e.message});
+    }
+}
+userSchema.pre('save', async function (){
+    try{
+        if(this.isModified('password')){
+            this.password = await bcrypt.hash(this.password,10);
+        }
+       
+    }catch(e){
+        throw new PasswordHasherException("Hash generation failed",{"status":"error","message":"Password hash failed",causeBy: e.message})
     }
 });
 const Users = mongoose.model('User',userSchema);

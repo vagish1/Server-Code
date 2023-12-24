@@ -47,14 +47,26 @@ const userSchema = new mongoose.Schema({
         token:{
             type:String,
             required:true
+        },
+        createdAt:{
+            type: Date,
+            required: true,
+        },
+        inUse:{
+            type: Boolean,
+            required: true
         }
-    }]
+    }],
+    passwordAttempt: {
+        type: Number,
+        default: 0
+    }
 });
 
 userSchema.methods.generateAuthToken = async function (next){
     try{
         const token = await jwt.sign({_id: this._id},process.env.SECRET_KEY,{expiresIn: "14 days"})
-        this.tokens.push({token:token});
+        this.tokens.push({token:token, "createdAt":Date.now(),"inUse":true});
         return token;
     }catch(e){
        throw new JwtTokenGenException(e.message, {"status":"error","error":"Json Web token generation error ", causedBy: e.message});

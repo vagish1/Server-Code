@@ -4,15 +4,13 @@ const { UserNotFound, FailureException } = require("../error/exception");
 
 module.exports = {
     findUserByEmailOrPhone: async function (email, phone) {
-        try {
+      
             const fetchedUser = await Users.findOne({ $or: [{ email: email }, { phone: phone }] });
             if (!fetchedUser) {
                 throw new UserNotFound(ExceptionCode.userNotExist, {message:"User does not exist with this email",});
             }
             return fetchedUser;
-        } catch (e) {
-            throw new FailureException(ExceptionCode.serverError, { message: "Server Error Occured", "details":e.details });
-        }
+       
     },
   
 }
